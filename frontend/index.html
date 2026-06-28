@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Tracker Dashboard</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0b0f19;
+            color: #f3f4f6;
+        }
+        .header-font {
+            font-family: 'Outfit', sans-serif;
+        }
+        .glass {
+            background: rgba(17, 25, 40, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        dialog::backdrop {
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(17, 25, 40, 0.2);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Top Navigation Bar -->
+    <nav class="glass sticky top-0 z-40 px-6 py-4 flex justify-between items-center">
+        <div class="flex items-center gap-3">
+            <span class="text-xl font-bold header-font text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400">
+                📈 Stock Tracker Dashboard
+            </span>
+        </div>
+        <div class="flex gap-2">
+            <!-- Command buttons linking to native dialogs -->
+            <button commandfor="watchlist-dialog" command="show-modal" class="px-4 py-2 text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl border border-slate-700 transition duration-200">
+                ⭐ 관심종목 관리
+            </button>
+            <button commandfor="schedule-dialog" command="show-modal" class="px-4 py-2 text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl border border-slate-700 transition duration-200">
+                ⏰ 알림 스케줄
+            </button>
+            <button commandfor="kakao-dialog" command="show-modal" class="px-4 py-2 text-xs font-semibold bg-amber-600 hover:bg-amber-500 text-white rounded-xl transition duration-200">
+                💬 카카오 연동
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Workspace -->
+    <div class="flex-1 max-w-7xl w-full mx-auto p-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
+        
+        <!-- Left Panel: Historical Report Archives & Operations -->
+        <aside class="lg:col-span-1 flex flex-col gap-6">
+            <!-- Manual Trigger Card -->
+            <div class="glass p-5 rounded-3xl flex flex-col gap-4">
+                <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider">수동 보고서 발행</h3>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                    즉시 실시간 주가 정보를 수집하고 뉴스를 AI로 요약하여 리포트를 발행한 뒤 카카오톡 알림을 전송합니다.
+                </p>
+                <button id="trigger-btn" class="w-full py-3 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-sm font-bold text-white rounded-xl shadow-lg shadow-indigo-950/50 transition duration-200 flex items-center justify-center gap-2">
+                    <svg id="trigger-loading-icon" class="hidden animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    보고서 즉시 발행
+                </button>
+            </div>
+
+            <!-- Report Archive Card -->
+            <div class="glass p-5 rounded-3xl flex-1 flex flex-col min-h-[400px]">
+                <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">과거 리포트 아카이브</h3>
+                <div id="reports-list" class="flex-1 overflow-y-auto space-y-2 max-h-[500px] pr-1">
+                    <!-- Loading placeholder -->
+                    <div class="text-center py-8 text-xs text-slate-500">리포트 기록 로드 중...</div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Right Panel: HTML Report Viewer -->
+        <main class="lg:col-span-3 flex flex-col">
+            <div class="glass rounded-3xl overflow-hidden flex flex-col flex-1 min-h-[600px]">
+                <!-- Viewer Header -->
+                <div class="px-6 py-4 bg-slate-900/60 border-b border-slate-800 flex justify-between items-center">
+                    <span class="text-sm font-bold text-indigo-300 flex items-center gap-2">
+                        📄 Report Viewer <span id="viewing-report-type" class="text-xs font-normal text-slate-400">(최신 리포트)</span>
+                    </span>
+                    <button id="view-latest-btn" class="text-xs font-medium text-indigo-400 hover:text-indigo-300 transition duration-200">
+                        최신 리포트 보기
+                    </button>
+                </div>
+                
+                <!-- HTML Report Injector -->
+                <div id="report-view-container" class="flex-1 bg-[#0b0f19] overflow-y-auto p-4 flex justify-center">
+                    <!-- If report HTML content is loaded, it will be injected here -->
+                    <div id="report-viewer-content" class="w-full max-w-md">
+                        <div class="text-center py-24 text-slate-500 text-sm">
+                            보고서를 불러오는 중입니다...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Watchlist Manage Dialog -->
+    <dialog id="watchlist-dialog" class="glass rounded-3xl p-6 max-w-md w-full text-slate-200">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-lg font-bold header-font">관심 종목 관리</h3>
+            <button commandfor="watchlist-dialog" command="close" class="text-slate-400 hover:text-slate-200 text-lg">&times;</button>
+        </div>
+        
+        <!-- Add stock form -->
+        <div class="mb-6">
+            <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">종목 검색 및 추가</label>
+            <div class="flex gap-2">
+                <input id="stock-search-input" type="text" placeholder="예: 삼성전자, AAPL, 005930" class="flex-1 bg-slate-900 border border-slate-800 focus:border-indigo-500 rounded-xl px-4 py-2 text-sm outline-none transition duration-200">
+            </div>
+            <!-- Search Results Dropdown -->
+            <div id="search-results" class="hidden bg-slate-900 border border-slate-800 rounded-xl mt-2 max-h-40 overflow-y-auto divide-y divide-slate-800 text-xs">
+                <!-- Dynamic search items -->
+            </div>
+        </div>
+
+        <!-- Watchlist list -->
+        <div>
+            <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">등록된 관심 종목</label>
+            <div id="watchlist-items" class="space-y-2 max-h-56 overflow-y-auto pr-1">
+                <!-- Loaded from API -->
+            </div>
+        </div>
+    </dialog>
+
+    <!-- Schedule Manage Dialog -->
+    <dialog id="schedule-dialog" class="glass rounded-3xl p-6 max-w-md w-full text-slate-200">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-lg font-bold header-font">알림 스케줄 설정</h3>
+            <button commandfor="schedule-dialog" command="close" class="text-slate-400 hover:text-slate-200 text-lg">&times;</button>
+        </div>
+
+        <!-- Add schedule form -->
+        <div class="mb-6">
+            <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">스케줄 추가 (시:분)</label>
+            <div class="flex gap-2">
+                <input id="schedule-time-input" type="time" class="flex-1 bg-slate-900 border border-slate-800 focus:border-indigo-500 rounded-xl px-4 py-2 text-sm outline-none transition duration-200 text-slate-200">
+                <button id="add-schedule-btn" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-sm font-semibold rounded-xl transition duration-200">
+                    추가
+                </button>
+            </div>
+        </div>
+
+        <!-- Schedule list -->
+        <div>
+            <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">활성화된 스케줄 목록</label>
+            <div id="schedule-items" class="space-y-2 max-h-56 overflow-y-auto pr-1">
+                <!-- Loaded from API -->
+            </div>
+        </div>
+    </dialog>
+
+    <!-- Kakao OAuth Setup Dialog -->
+    <dialog id="kakao-dialog" class="glass rounded-3xl p-6 max-w-md w-full text-slate-200">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-lg font-bold header-font">카카오톡 연동 설정</h3>
+            <button commandfor="kakao-dialog" command="close" class="text-slate-400 hover:text-slate-200 text-lg">&times;</button>
+        </div>
+        
+        <div class="space-y-4 text-xs text-slate-400 leading-relaxed">
+            <p>
+                본 프로그램은 카카오톡 REST API를 사용하여 나에게 보내기 기능으로 보고서를 전송합니다. 최초 연동을 위해 인증 절차가 필요합니다.
+            </p>
+            <ol class="list-decimal list-inside space-y-2">
+                <li><code>.env</code> 파일에 카카오 디벨로퍼스 앱의 <strong>REST_API_KEY</strong>를 등록합니다.</li>
+                <li>아래 <strong>[카카오 인증 시작]</strong> 버튼을 눌러 카카오 계정 로그인을 진행합니다.</li>
+                <li>인증이 성공하면 브라우저 화면에 출력되는 <strong>Refresh Token</strong>을 복사하여 <code>.env</code> 파일의 <code>KAKAO_REFRESH_TOKEN</code> 값에 입력하고 컨테이너를 재시작합니다.</li>
+            </ol>
+            
+            <div class="pt-4 border-t border-slate-800 flex flex-col gap-2">
+                <button id="start-kakao-auth-btn" class="w-full py-3 bg-[#FEE500] hover:bg-[#F0D500] text-black font-bold rounded-xl transition duration-200 flex items-center justify-center gap-2 text-sm">
+                    💬 카카오 인증 시작
+                </button>
+                <div class="text-[10px] text-center text-slate-500">
+                    인증 Redirect URL: <span id="kakao-redirect-url-label">http://localhost:8000/api/kakao/callback</span>
+                </div>
+            </div>
+        </div>
+    </dialog>
+
+    <!-- Polyfill Script for Invoker Commands (Modern Web Guideline) -->
+    <script type="module">
+        if (!('commandForElement' in HTMLButtonElement.prototype)) {
+            import('https://esm.run/invokers-polyfill');
+        }
+    </script>
+    
+    <!-- Custom Frontend Logic -->
+    <script src="assets/app.js"></script>
+</body>
+</html>
