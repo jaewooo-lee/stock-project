@@ -1,0 +1,28 @@
+# Python caches
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# SQLite Database
+*.db
+backend/app/*.db
+
+# Local environment variables
+.env
+
+# Shared volumes / report folders
+reports/
+frontend/reports/
+backend/reports/
+backend/app/reports/
+
+# IDE files
+.vscode/
+.idea/
+.DS_Store
+
+# Virtual environment
+venv/
+.venv/
+env/
