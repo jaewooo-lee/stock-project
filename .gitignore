@@ -26,3 +26,10 @@ backend/app/reports/
 venv/
 .venv/
 env/
+
+# Runtime data & tokens
+data/
+*.token.json
+kakao_token.json
+kakao_history.json
+kakao_schedule.json

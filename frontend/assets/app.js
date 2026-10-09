@@ -331,6 +331,35 @@ viewLatestBtn.addEventListener('click', () => {
 // ------------------------------------------------------------
 
 startKakaoAuthBtn.addEventListener('click', () => {
+    // Generate Auth URL
+    // Read Client ID and Redirect URL dynamically if possible. 
+    // Since env variables are hidden on frontend, the backend exposes them or we can ask the backend
+    // For simplicity, we redirect to a dynamic URL constructed using default configs.
+    // If the REST API key is inside config, we can fetch it first or directly request auth redirect.
+    // Let's call a prompt to get the auth initiation from backend, or construct it.
+    // Actually, we can fetch REST API key from backend if we provide an endpoint, but for safety of REST API key exposure,
+    // we can request backend to redirect the browser.
+    
+    // We will build a redirect URL by requesting a REST API Key from backend? No, exposing it is fine as it's public.
+    // However, an even safer and cleaner way is:
+    // Create an endpoint `GET /api/kakao/authorize` on backend that redirects the user directly to Kakao.
+    // Let's implement that redirect on backend or let frontend request it.
+    // But since main.py doesn't have `GET /api/kakao/authorize`, we can just fetch config REST_API_KEY from backend,
+    // or we can redirect to a pre-defined path. Since the REST API key is owned by the developer, let's just make
+    // a redirect helper.
+    // Let's ask main.py's config REST API key by introducing a endpoint: We didn't do it, but we can do a simple window.location.href.
+    // Wait, the client_id is KAKAO_REST_API_KEY. We can fetch it by creating a small endpoint, or the user can enter manually.
+    // Let's assume we can fetch the auth url from backend. Let's add that to main.py or just handle it here.
+    // Let's check how main.py configures it. Config has config.KAKAO_REST_API_KEY and config.KAKAO_REDIRECT_URI.
+    // We can fetch this auth config from a simple public config endpoint.
+    // Let's create an endpoint in main.py: /api/kakao/auth-url that returns the auth URL!
+    // But we already wrote main.py, let's check if we can update it or fetch config.
+    // Actually, since we're in javascript, we can write a GET fetch to check. Let's add a small change to main.py or just fetch it.
+    // Wait! Let's check if we can just get it. Since we haven't exposed REST_API_KEY, let's modify main.py or add a helper endpoint.
+    // Alternatively, the user can just access the URL directly.
+    // Let's check if we can update main.py to support redirection or return auth URL. Yes, we can do it using replace_file_content.
+    // But first, let's write the Javascript assuming `/api/kakao/auth-url` endpoint exists.
+    
     fetch(`${API_BASE}/kakao/auth-url`)
         .then(res => res.json())
         .then(data => {
